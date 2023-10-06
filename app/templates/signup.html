@@ -1,45 +1,116 @@
-<!-- HTML (signup.html) -->
-{% load static %}
+{% load static %} {# Load static files #}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="{% static 'css/style1.css' %}">
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <title>Signup</title>
 </head>
 <body>
-    <div class="content">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">UNSDC</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'custom_login' %}">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'about' %}">About</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="content" style="margin-top: 70px;">
         <h1>Welcome to Our Website</h1>
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam in tincidunt justo. Nullam pulvinar sem et vehicula.</p>
     </div>
+        
     <div class="container">
+        <br>
+        <br>
         <h2>Signup</h2>
-        <form method="post">
+        <form method="post" action="{% url 'signup' %}">
             {% csrf_token %}
             <label for="id_first_name">User Name:</label>
-            <input type="text" id="id_first_name" name="username" required><br><br>
+            <input type="text" id="id_first_name" name="username" value="{{ request.POST.username }}" required><br><br>
 
             <label for="id_last_name">Last Name:</label>
-            <input type="text" id="id_last_name" name="last_name" required><br><br>
+            <input type="text" id="id_last_name" name="last_name" value="{{ request.POST.last_name }}" required><br><br>
 
-            <label for="id_date_of_birth">Date of Birth (YYYY-MM-DD):</label>
-            <input type="text" id="id_date_of_birth" name="date_of_birth" required><br><br>
+            <label for="id_date_of_birth">Date of Birth:</label>
+            <input type="date" id="id_date_of_birth" name="date_of_birth" value="{{ request.POST.date_of_birth }}" required><br><br>
+            
+            <!-- Age error message -->
+            {% if age_error %}
+                <p style="color: red;">{{ age_error }}</p>
+            {% endif %}
 
             <label for="id_mobile_number">Mobile Number:</label>
-            <input type="text" id="id_mobile_number" name="mobile_number" required><br><br>
+            <input type="text" id="id_mobile_number" name="mobile_number" value="{{ request.POST.mobile_number }}" required><br><br>
 
             <label for="id_whatsapp_number">WhatsApp Number (optional):</label>
-            <input type="text" id="id_whatsapp_number" name="whatsapp_number"><br><br>
+            <input type="text" id="id_whatsapp_number" name="whatsapp_number" value="{{ request.POST.whatsapp_number }}"><br><br>
 
-            <label for="id_password1">Password:</label>
-            <input type="password" id="id_password1" name="password1" required><br><br>
+            <!-- Password input fields -->
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <span class="error" style="color: red;">{{ password_error }}</span><br><br>
 
-            <label for="id_password2">Confirm Password:</label>
-            <input type="password" id="id_password2" name="password2" required><br><br>
+            <label for="confirm_password">Confirm Password:</label>
+            <input type="password" id="confirm_password" name="confirm_password" required><br><br>
+
+            <!-- Interests checkboxes -->
+            <label>Interests:</label><br>
+            <label>GST: 18%</label>
+            <input type="checkbox" id="drawing" name="interests[]" value="drawing" data-price="100">
+            <label for="drawing">Drawing (₹100)</label><br>
+
+            <input type="checkbox" id="fancy_dress" name="interests[]" value="fancy_dress" data-price="100">
+            <label for="fancy_dress">Fancy Dress (₹100)</label><br>
+
+            <input type="checkbox" id="essay" name="interests[]" value="essay" data-price="100">
+            <label for="essay">Essay (₹100)</label><br><br>
+
+            <!-- Display the total -->
+            <label>Total (including GST 18%): ₹<span id="total">0.00</span></label><br><br>
+
+            <!-- JavaScript to calculate the total -->
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                    const totalLabel = document.getElementById('total');
+                
+                    checkboxes.forEach(function(checkbox) {
+                        checkbox.addEventListener('change', updateTotal);
+                    });
+                
+                    function updateTotal() {
+                        let total = 0;
+                        checkboxes.forEach(function(checkbox) {
+                            if (checkbox.checked) {
+                                const price = parseInt(checkbox.getAttribute('data-price'));
+                                total += price + 54;
+                            }
+                        });
+                    
+                        totalLabel.textContent = total.toFixed(2);
+                    }
+                });
+            </script>
 
             <button type="submit">Signup</button>
         </form>
     </div>
+
+    <!-- Include Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
