@@ -27,6 +27,7 @@ from app import views
 
 
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', RedirectView.as_view(url='signup/'), name='home'),

@@ -1,4 +1,4 @@
-{% load static %} {# Load static files #}
+{% load static %}{# Load static files #}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,6 +40,9 @@
             {% csrf_token %}
             <label for="id_first_name">User Name:</label>
             <input type="text" id="id_first_name" name="username" value="{{ request.POST.username }}" required><br><br>
+            {% if username_error %}
+                <p style="color: red;">{{ username_error }}</p>
+            {% endif %}
 
             <label for="id_last_name">Last Name:</label>
             <input type="text" id="id_last_name" name="last_name" value="{{ request.POST.last_name }}" required><br><br>

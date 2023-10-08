@@ -11,20 +11,15 @@ import random
 import string
 from django.contrib.auth.decorators import login_required
 from PIL import Image, ImageDraw, ImageFont
-from django.http import HttpResponse
-from PIL import Image, ImageDraw, ImageFont
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
 import io
-from django.template.loader import render_to_string
-
-
-
+from .models import Interest
+   
 
 # Signup view
 def signup(request):
-    password_error = ""  # Initialize the password error message
-    age_error = ""  # Initialize the age error message
+    password_error = ""
+    age_error = ""
+    username_error = ""
 
     if request.method == 'POST':
         username = request.POST['username']
@@ -36,34 +31,36 @@ def signup(request):
         password2 = request.POST['confirm_password']
         interests = request.POST.getlist('interests')
 
-        # Convert date_of_birth string to a datetime.date object
         date_of_birth = datetime.strptime(date_of_birth_str, "%Y-%m-%d").date()
+
+        # Check if the username is already taken
+        if User.objects.filter(username=username).exists():
+            username_error = "This username is already taken. Please choose a different username."
 
         if password1 != password2:
             password_error = "Your password and confirm password do not match."
         else:
-            # Validate the password against the defined policy
             try:
                 validate_password(password1, User(username=username))
             except ValidationError as e:
                 password_error = ", ".join(e.messages)
 
-        # Calculate the user's age
         today = date.today()
         age = today.year - date_of_birth.year - ((today.month, today.day) < (date_of_birth.month, date_of_birth.day))
 
-        # Custom validation for date_of_birth
         if age < 18:
             age_error = "Age should be above 18+"
 
-        if password_error:
+        if username_error:
             interests = Interest.objects.all()
-            messages.error(request, password_error)  # Add an error message
+            messages.error(request, username_error)
+        elif password_error:
+            interests = Interest.objects.all()
+            messages.error(request, password_error)
         elif age_error:
             interests = Interest.objects.all()
-            messages.error(request, age_error)  # Add an error message
+            messages.error(request, age_error)
         else:
-            # Validation passed; proceed to user creation and login
             user = User.objects.create_user(username=username, password=password1, last_name=last_name)
 
             user_profile = UserProfile(
@@ -78,34 +75,29 @@ def signup(request):
             user = authenticate(username=username, password=password1)
             if user:
                 login(request, user)
-                return redirect('custom_login')  # Redirect to the login page
+                return redirect('custom_login')
 
     interests = Interest.objects.all()
-    return render(request, 'signup.html', {'interests': interests, 'password_error': password_error, 'age_error': age_error})
+    return render(request, 'signup.html', {'interests': interests, 'password_error': password_error, 'age_error': age_error, 'username_error': username_error})
 
 # Certificate view
 @login_required(login_url='custom_login')
 def certificate_view(request):
-    if request.user.is_authenticated:
-        user_name = request.user.username
-        event_name = "Your Event Name"  # Replace with the actual event name
+    user_name = request.user.username
+    event_name = "Your Event Name"
 
-        # Generate the registration date
-        registration_date = datetime.now().strftime("%Y-%m-%d")
+    registration_date = datetime.now().strftime("%Y-%m-%d")
 
-        # Generate the registration number
-        registration_no = generate_registration_number()
+    registration_no = generate_registration_number()
 
-        context = {
-            'user_name': user_name,
-            'event_name': event_name,
-            'registration_date': registration_date,
-            'registration_no': registration_no,
-        }
+    context = {
+        'user_name': user_name,
+        'event_name': event_name,
+        'registration_date': registration_date,
+        'registration_no': registration_no,
+    }
 
-        return render(request, 'certificate.html', context)
-    else:
-        return redirect('custom_login')
+    return render(request, 'certificate.html', context)
 
 # Logout view
 def logout_view(request):
@@ -120,9 +112,8 @@ def custom_login(request):
 
         if user is not None:
             login(request, user)
-            return redirect('homepage')  # Redirect to the homepage after successful login
+            return redirect('homepage')
         else:
-            # Add an error message
             messages.error(request, 'Invalid login credentials. Please try again.')
 
     return render(request, 'login.html')
@@ -141,22 +132,19 @@ def homepage(request):
     user_name = request.user.username
     return render(request, 'home.html', {'user_name': user_name})
 
+def add_interest(request):
+    interest = Interest(name="Your Interest Name", price=100.00)
+    interest.save()
+    return HttpResponse('Interest added successfully')
+
 def generate_certificate(request):
-    # Create an Image object
     image = Image.new('RGB', (800, 600), color='white')
-
-    # Create a drawing context
     draw = ImageDraw.Draw(image)
-
-    # Use a font for text
     font = ImageFont.load_default()
 
-    # Customize and draw your certificate content
     draw.text((100, 100), "Certificate of Participation", fill='black', font=font)
     draw.text((100, 150), f"This is to certify that {request.user.username}", fill='black', font=font)
-    # Add more text and design as needed
 
-    # Save the image as bytes
     image_bytes = io.BytesIO()
     image.save(image_bytes, format='PNG')
 
@@ -165,4 +153,5 @@ def generate_certificate(request):
 
     return response
 
-
+   
+  

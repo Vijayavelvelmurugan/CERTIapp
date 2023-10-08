@@ -13,8 +13,9 @@ class UserProfile(models.Model):
     date_of_birth = models.DateField()
     mobile_number = models.CharField(max_length=15, default='') 
     whatsapp_number = models.CharField(max_length=15, blank=True, null=True)
+    password =models.CharField(max_length=16, default='')
+    confirm_password=models.CharField(max_length=16, default='')
     interests = models.ManyToManyField(Interest, blank=True)
 
     def __str__(self):
         return self.user.username
-
